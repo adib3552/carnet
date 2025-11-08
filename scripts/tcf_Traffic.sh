@@ -1,6 +1,6 @@
 export CUDA_VISIBLE_DEVICES=3
 
-model_name=TimeXer
+model_name=tcf
 
 python -u run.py \
   --task_name long_term_forecast \
@@ -44,9 +44,9 @@ python -u run.py \
   --enc_in 862 \
   --dec_in 862 \
   --n_vars 862 \
-  --d_model 256 \
-  --d_ff 256 \
-  --d_core 128 \
+  --d_model 128 \
+  --d_ff 128 \
+  --d_core 64 \
   --des 'Exp' \
   --batch_size 32 \
   --learning_rate 0.001 \
@@ -64,7 +64,7 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 336 \
-  --e_layers 1 \
+  --e_layers 2 \
   --factor 3 \
   --enc_in 862 \
   --dec_in 862 \
@@ -72,7 +72,6 @@ python -u run.py \
   --d_model 128 \
   --d_ff 128 \
   --d_core 64 \
-  --kernel_size 3 \
   --des 'Exp' \
   --batch_size 32 \
   --learning_rate 0.001 \
@@ -90,7 +89,7 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 720 \
-  --e_layers 1 \
+  --e_layers 2 \
   --factor 3 \
   --enc_in 862 \
   --dec_in 862 \
@@ -98,7 +97,6 @@ python -u run.py \
   --d_model 128 \
   --d_ff 128 \
   --d_core 64 \
-  --kernel_size 3 \
   --des 'Exp' \
   --batch_size 16 \
   --learning_rate 0.001 \

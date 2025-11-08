@@ -70,7 +70,6 @@ python -u run.py \
   --des 'Exp' \
   --d_model 256 \
   --d_ff 2048 \
-  --kernel_size 3 \
   --d_core 128 \
   --batch_size 16 \
   --itr 1
@@ -87,15 +86,14 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 720 \
-  --e_layers 1 \
+  --e_layers 2 \
   --factor 3 \
   --enc_in 7 \
   --dec_in 7 \
   --n_vars 7 \
   --des 'Exp' \
-  --d_model 128 \
+  --d_model 256 \
   --d_ff 2048 \
-  --kernel_size 7 \
-  --d_core 64 \
+  --d_core 128 \
   --batch_size 16 \
   --itr 1

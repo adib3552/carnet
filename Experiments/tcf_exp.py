@@ -9,11 +9,11 @@ import torch.optim as optim
 import numpy as np
 from tqdm import tqdm
 
-size = [96,48,96]
+size = [96,48,192]
 
 train_set = Dataset_Custom(
-    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/electricity/',
-    data_path='electricity.csv',
+    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/traffic/',
+    data_path='traffic.csv',
     flag='train',
     size=size,
     features='M',      # 'M' = multivariate (use all features)
@@ -24,8 +24,8 @@ train_set = Dataset_Custom(
 )
 
 val_set = Dataset_Custom(
-    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/electricity/',
-    data_path='electricity.csv',
+    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/traffic/',
+    data_path='traffic.csv',
     flag='val',
     size=size,
     features='M',
@@ -36,8 +36,8 @@ val_set = Dataset_Custom(
 )
 
 test_set = Dataset_Custom(
-    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/electricity/',
-    data_path='electricity.csv',
+    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/traffic/',
+    data_path='traffic.csv',
     flag='test',
     size=size,
     features='M',
@@ -76,17 +76,18 @@ class Config:
     def __init__(self):
         self.d_model = 128
         self.d_core = 64
-        self.e_layers = 3
+        self.e_layers = 2
         self.d_ff = 128
-        self.c_out = 321
+        self.n_vars = 862
         self.seq_len = 96
         self.pred_len = size[2]
         self.kernel_size = 0
         self.patch_len = 16
         self.n_heads = 16
-        self.factor = 3
+        self.factor = 3       
         self.dropout = 0.1
         self.use_norm = True
+
 # Create configuration instance
 configs = Config()
 model = Model(configs).to('cuda')

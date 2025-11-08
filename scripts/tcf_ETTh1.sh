@@ -95,7 +95,6 @@ python -u run.py \
   --des 'Exp' \
   --d_model 128 \
   --d_ff 128 \
-  --kernel_size 7 \
   --d_core 64 \
   --batch_size 16 \
   --itr 1
