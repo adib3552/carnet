@@ -1,5 +1,5 @@
 import numpy as np
-
+import torch.nn as nn
 
 def RSE(pred, true):
     return np.sqrt(np.sum((true - pred) ** 2)) / np.sqrt(np.sum((true - true.mean()) ** 2))
@@ -41,4 +41,4 @@ def metric(pred, true):
     mape = MAPE(pred, true)
     mspe = MSPE(pred, true)
 
-    return mae, mse, rmse, mape, mspe
+    return mae, rmse, mape, mspe

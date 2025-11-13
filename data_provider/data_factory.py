@@ -14,19 +14,18 @@ data_dict = {
 
 def data_provider(args, flag):
     Data = data_dict[args.data]
-    timeenc = 0 if args.embed != 'timeF' else 1
+    timeenc = 0 
 
     if flag == 'test':
         shuffle_flag = False
-        drop_last = True
-        batch_size = 1  # bsz=1 for evaluation
+        drop_last = False
+        batch_size = args.batch_size
         freq = args.freq
-    elif flag == 'pred':
+    elif flag == 'val':
         shuffle_flag = False
         drop_last = False
-        batch_size = 1
+        batch_size = args.batch_size
         freq = args.freq
-        Data = Dataset_Pred
     else:
         shuffle_flag = True
         drop_last = True
@@ -43,11 +42,10 @@ def data_provider(args, flag):
         timeenc=timeenc,
         freq=freq,
     )
+    print(args.freq)
     print(flag, len(data_set))
     data_loader = DataLoader(
         data_set,
         batch_size=batch_size,
-        shuffle=shuffle_flag,
-        num_workers=args.num_workers,
-        drop_last=drop_last)
+        shuffle=shuffle_flag)
     return data_set, data_loader

@@ -21,9 +21,10 @@ python -u run.py \
   --n_vars 7 \
   --d_model 128 \
   --batch_size 32 \
-  --d_ff 128 \
+  --d_ff 256 \
   --d_core 64\
   --des 'exp' \
+  --lradj cosine \
   --itr 1
 
 
@@ -48,7 +49,8 @@ python -u run.py \
   --d_model 128 \
   --d_ff 128 \
   --d_core 64 \
-  --batch_size 16 \
+  --batch_size 32 \
+  --lradj cosine \
   --itr 1
 
 python -u run.py \
@@ -70,9 +72,10 @@ python -u run.py \
   --n_vars 7 \
   --des 'Exp' \
   --d_model 128 \
-  --d_ff 128 \
-  --d_core 64 \
-  --batch_size 16 \
+  --d_ff 64 \
+  --d_core 256 \
+  --batch_size 32 \
+  --lradj cosine \
   --itr 1
 
 python -u run.py \
@@ -95,6 +98,7 @@ python -u run.py \
   --des 'Exp' \
   --d_model 128 \
   --d_ff 128 \
-  --d_core 64 \
-  --batch_size 16 \
+  --d_core 128 \
+  --batch_size 32 \
+  --lradj cosine \
   --itr 1

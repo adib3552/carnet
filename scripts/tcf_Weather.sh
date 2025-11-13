@@ -23,7 +23,10 @@ python -u run.py \
   --d_model 128 \
   --d_ff 128 \
   --d_core 64 \
-  --batch_size 16 \
+  --batch_size 32 \
+  --lradj cosine \
+  --train_epochs 50 \
+  --freq t \
   --itr 1 \
 
 python -u run.py \
@@ -45,9 +48,12 @@ python -u run.py \
   --n_vars 21 \
   --des 'Exp' \
   --d_model 128 \
-  --d_core 64 \
+  --d_core 128 \
   --d_ff 128 \
-  --batch_size 16 \
+  --batch_size 32 \
+  --lradj cosine \
+  --train_epochs 50 \
+  --freq t \
   --itr 1
 
 python -u run.py \
@@ -68,10 +74,12 @@ python -u run.py \
   --dec_in 21 \
   --n_vars 21 \
   --des 'Exp' \
-  --d_model 128 \
-  --d_ff 128 \
-  --d_core 64 \
-  --batch_size 16 \
+  --d_model 256 \
+  --d_ff 256 \
+  --d_core 128 \
+  --batch_size 32 \
+  --train_epochs 50 \
+  --freq t \
   --itr 1
 
 python -u run.py \
@@ -95,5 +103,8 @@ python -u run.py \
   --d_model 128 \
   --d_ff 128 \
   --d_core 64 \
-  --batch_size 16 \
+  --batch_size 32 \
+  --lradj cosine \
+  --train_epochs 50 \
+  --freq t \
   --itr 1

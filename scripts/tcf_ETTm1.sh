@@ -14,16 +14,18 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 96 \
-  --e_layers 1 \
+  --e_layers 2 \
   --factor 3 \
   --enc_in 7 \
   --dec_in 7 \
   --n_vars 7 \
   --d_model 128 \
-  --batch_size 16 \
+  --batch_size 32 \
   --d_ff 128 \
   --d_core 64 \
   --des 'Exp' \
+  --lradj cosine \
+  --freq t \
   --itr 1
 
 python -u run.py \
@@ -46,8 +48,10 @@ python -u run.py \
   --d_model 128 \
   --d_core 64 \
   --d_ff 128 \
-  --batch_size 16 \
+  --batch_size 32 \
+  --lradj cosine \
   --des 'Exp' \
+  --freq t \
   --itr 1
 
 python -u run.py \
@@ -69,9 +73,11 @@ python -u run.py \
   --n_vars 7 \
   --d_model 128 \
   --d_ff 128 \
-  --batch_size 16 \
+  --batch_size 32 \
   --d_core 64 \
+  --lradj cosine \
   --des 'Exp' \
+  --freq t \
   --itr 1
 
 python -u run.py \
@@ -92,8 +98,10 @@ python -u run.py \
   --dec_in 7 \
   --n_vars 7 \
   --d_model 128 \
-  --d_ff 128 \
+  --d_ff 512 \
   --d_core 64 \
-  --batch_size 16 \
+  --batch_size 32 \
+  --lradj cosine \
   --des 'Exp' \
+  --freq t \
   --itr 1

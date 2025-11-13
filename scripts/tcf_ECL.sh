@@ -5,7 +5,7 @@ model_name=tcf
 python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/ETT-small/\
+  --root_path ./dataset/electricity/\
   --data_path electricity.csv \
   --model_id ECL_96_96 \
   --model $model_name \
@@ -22,14 +22,16 @@ python -u run.py \
   --dec_in 321 \
   --n_vars 321 \
   --des 'Exp' \
-  --d_ff 128 \
+  --d_ff 256 \
+  --lradj cosine \
+  --learning_rate 0.001 \
   --batch_size 32 \
   --itr 1
 
 python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/ETT-small/ \
+  --root_path ./dataset/electricity/ \
   --data_path electricity.csv \
   --model_id ECL_96_192 \
   --model $model_name \
@@ -48,12 +50,14 @@ python -u run.py \
   --des 'Exp' \
   --d_ff 128 \
   --batch_size 32 \
+  --lradj cosine \
+  --learning_rate 0.001 \
   --itr 1
 
 python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/ETT-small/ \
+  --root_path ./dataset/electricity/ \
   --data_path electricity.csv \
   --model_id ECL_96_336 \
   --model $model_name \
@@ -72,12 +76,14 @@ python -u run.py \
   --des 'Exp' \
   --d_ff 128 \
   --batch_size 32 \
+  --lradj cosine \
+  --learning_rate 0.001 \
   --itr 1
 
 python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --root_path /c/Users/Awsftausif/Desktop/S-Mamba_datasets/electricity/ \
+  --root_path ./dataset/electricity/ \
   --data_path electricity.csv \
   --model_id ECL_96_720 \
   --model $model_name \
@@ -96,4 +102,6 @@ python -u run.py \
   --des 'Exp' \
   --d_ff 128 \
   --batch_size 32 \
+  --lradj cosine \
+  --learning_rate 0.001 \
   --itr 1
