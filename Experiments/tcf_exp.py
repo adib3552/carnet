@@ -16,62 +16,65 @@ def set_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
     torch.use_deterministic_algorithms(True)
 
 
 set_seed(2021)
 
-from model.tcf6 import Model
+from model.tcf7 import Model
 
 size = [96,48,12]
-d_model = 128
-d_ff = 128
-d_core = 64
+d_model = 256
+d_ff = 256 
+d_core = 128
 e_layers = 2
 bs = 32
 lr = 0.001
 n_vars = 170
-period_len = 16
+period_len = 48
+cycle_len = 288
 freq = 't'
 embed = 'timeF'
+root_path = 'C:/Users/Awsftausif/Desktop/S-Mamba_datasets/PEMS/'
+data_path = 'PEMS08.npz'
 
 train_set = Dataset_PEMS(
-    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/PEMS/',
-    data_path='PEMS08.npz',
+    root_path=root_path,
+    data_path=data_path,
     flag='train',
     size=size,
     features='M',      # 'M' = multivariate (use all features)
     target='OT',  # change this to your target column
     scale=True,
     timeenc=0,
-    freq=freq           # depends on your dataset frequency (h=hourly, d=daily, etc.)
+    freq=freq,           # depends on your dataset frequency (h=hourly, d=daily, etc.)
+    cycle=cycle_len
 )
 
 val_set = Dataset_PEMS(
-    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/PEMS/',
-    data_path='PEMS08.npz',
+    root_path=root_path,
+    data_path=data_path,
     flag='val',
     size=size,
     features='M',
     target='OT',
     scale=True,
     timeenc=0,
-    freq=freq
+    freq=freq,
+    cycle=cycle_len
 )
 
 test_set = Dataset_PEMS(
-    root_path='C:/Users/Awsftausif/Desktop/S-Mamba_datasets/PEMS/',
-    data_path='PEMS08.npz',
+    root_path=root_path,
+    data_path=data_path,
     flag='test',
     size=size,
     features='M',
     target='OT',
     scale=True,
     timeenc=0,
-    freq=freq
+    freq=freq,
+    cycle=cycle_len
 )
 
 
@@ -80,9 +83,18 @@ val_loader = DataLoader(val_set, batch_size=bs, shuffle=False)
 test_loader = DataLoader(test_set, batch_size=bs, shuffle=False)
 
 
+def find_period(x, k=1):
+    # [B, T, C]
+    xf = torch.fft.rfft(x, dim=1)
+    # find period by amplitudes
+    frequency_list = abs(xf).mean(0).mean(-1)
+    frequency_list[0:2] = 0
+    _, top_list = torch.topk(frequency_list, k)
+    top_list = top_list.detach().cpu().numpy()
+    period = x.shape[1] // top_list
+    return period
 
-
-for batch_idx, (seq_x, seq_y, seq_x_mark, seq_y_mark) in enumerate(train_loader):
+for batch_idx, (seq_x, seq_y, seq_x_mark, seq_y_mark, cycle_index) in enumerate(train_loader):
     print("Batch index:", batch_idx)
     
     # Print the first sample in this batch
@@ -93,6 +105,8 @@ for batch_idx, (seq_x, seq_y, seq_x_mark, seq_y_mark) in enumerate(train_loader)
     print("\nseq_x_mark shape:", seq_x_mark.shape)
     
     print("\nseq_y_mark shape:", seq_y_mark.shape)
+    
+    print("\nCycle index: ", cycle_index)
     
     # Exit after first batch
     break
@@ -106,7 +120,8 @@ class Config:
         self.e_layers = e_layers
         self.d_ff = d_ff
         self.n_vars = n_vars
-        self.patch_len = 16 
+        self.patch_len = 48 
+        self.cycle_len = cycle_len
         self.seq_len = 96
         self.pred_len = size[2]
         self.kernel_size = 0
@@ -133,12 +148,12 @@ def mae_loss(pred, true):
 def train(model, train_loader, optimizer, device, pred_len):
     model.train()
     total_loss = 0
-    for seq_x, seq_y, seq_x_mark, seq_y_mark in tqdm(train_loader, desc="Training", leave=False):
+    for seq_x, seq_y, seq_x_mark, seq_y_mark, cycle_index in tqdm(train_loader, desc="Training", leave=False):
         seq_x = seq_x.to(device).float()
         target = seq_y[:, -pred_len:, :].to(device).float()  # take last pred_len steps
 
         optimizer.zero_grad()
-        outputs = model(seq_x)
+        outputs = model(seq_x, cycle_index)
         loss = mse_loss(outputs, target)
         loss.backward()
         optimizer.step()
@@ -152,11 +167,11 @@ def evaluate(model, val_loader, device, pred_len):
     model.eval()
     total_mse, total_mae = 0, 0
     with torch.no_grad():
-        for seq_x, seq_y, seq_x_mark, seq_y_mark in tqdm(val_loader, desc="Validating", leave=False):
+        for seq_x, seq_y, seq_x_mark, seq_y_mark, cycle_index in tqdm(val_loader, desc="Validating", leave=False):
             seq_x = seq_x.to(device).float()
             target = seq_y[:, -pred_len:, :].to(device).float()
 
-            outputs = model(seq_x)
+            outputs = model(seq_x, cycle_index)
             total_mse += mse_loss(outputs, target).item()
             total_mae += mae_loss(outputs, target).item()
 
@@ -167,11 +182,11 @@ def test(model, test_loader, device, pred_len):
     model.eval()
     total_mse, total_mae = 0, 0
     with torch.no_grad():
-        for seq_x, seq_y, seq_x_mark, seq_y_mark in tqdm(test_loader, desc="Testing", leave=False):
+        for seq_x, seq_y, seq_x_mark, seq_y_mark, cycle_index in tqdm(test_loader, desc="Testing", leave=False):
             seq_x = seq_x.to(device).float()
             target = seq_y[:, -pred_len:, :].to(device).float()
 
-            outputs = model(seq_x)
+            outputs = model(seq_x, cycle_index)
             total_mse += mse_loss(outputs, target).item()
             total_mae += mae_loss(outputs, target).item()
     return total_mse / len(test_loader), total_mae / len(test_loader), None, None

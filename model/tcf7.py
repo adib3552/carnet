@@ -21,18 +21,25 @@ class FlattenHead(nn.Module):
         x = self.dropout(x)
         return x
     
+class RecurrentCycle(torch.nn.Module):
+    def __init__(self, cycle_len, channel_size):
+        super(RecurrentCycle, self).__init__()
+        self.cycle_len = cycle_len
+        self.channel_size = channel_size
+        self.data = torch.nn.Parameter(torch.zeros(cycle_len, channel_size), requires_grad=True)
+
+    def forward(self, index, length):
+        gather_index = (index.view(-1, 1) + torch.arange(length, device=index.device).view(1, -1)) % self.cycle_len
+        return self.data[gather_index]
 
 class EnEmbedding(nn.Module):
-    def __init__(self, n_vars, d_model, patch_len, seq_len, dropout):
+    def __init__(self, n_vars, d_model, patch_len, kernel_size, dropout):
         super(EnEmbedding, self).__init__()
         # Patching
         self.patch_len = patch_len
-        self.seq_len = seq_len
-        
+        self.kernel_size = kernel_size
+
         self.value_embedding = nn.Linear(patch_len, d_model, bias=False)
-        self.seg_num_x = self.seq_len // self.patch_len
-        self.conv1d = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=1 + 2 * (self.patch_len // 2),
-                               stride=1, padding=self.patch_len // 2, padding_mode="zeros", bias=False)
         self.glb_token = nn.Parameter(torch.randn(1, n_vars, 1, d_model))
         self.position_embedding = PositionalEmbedding(d_model)
 
@@ -42,20 +49,19 @@ class EnEmbedding(nn.Module):
         # do patching
         batch,n_vars,temp = x.shape
         glb = self.glb_token.repeat((x.shape[0], 1, 1, 1))
-        x = self.conv1d(x.reshape(-1, 1, self.seq_len)).reshape(-1, n_vars, self.seq_len) + x
-        
-        x = x.reshape(batch, n_vars, self.seg_num_x, self.patch_len)
-        
+        #channel wise pre conv
+        if self.kernel_size > 0:
+            x = self.pre_conv(x)
+            x = self.norm(x)
+
+        x = x.unfold(dimension=-1, size=self.patch_len, step=self.patch_len)
         x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))
-        
         # Input encoding
         x = self.value_embedding(x) + self.position_embedding(x)
         x = torch.reshape(x, (-1, n_vars, x.shape[-2], x.shape[-1]))
         x = torch.cat([x, glb], dim=2)
         x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))
         return self.dropout(x),batch,n_vars,x.shape[2]
-    
-    
 
 
 class EncoderLayer(nn.Module):
@@ -96,10 +102,10 @@ class EncoderLayer(nn.Module):
         batch_size, channels, d_model = x_glb.shape
         H = self.n_heads
         #multihead = F.gelu(self.gen1(x_glb))
-        multihead = F.gelu(self.gen2(x_glb)).view(batch_size, channels, H, -1)
+        multihead = F.gelu(self.gen2(x_glb)).view(batch_size,channels,H,-1)
         multihead_core = multihead.reshape(batch_size*channels, H*self.d_head, 1)
-        multihead_core = F.gelu(self.gen3(multihead_core)).view(batch_size, channels, H, -1)
-        combined_mean = multihead_core.reshape(batch_size, channels, H*self.d_core_head)
+        multihead_core = F.gelu(self.gen3(multihead_core)).view(batch_size,channels,H,-1)
+        combined_mean = multihead_core.reshape(batch_size,channels,H*self.d_core_head)
         combined_mean = self.gen4(combined_mean)
         
         # stochastic pooling
@@ -157,11 +163,12 @@ class Model(nn.Module):
         self.seq_len = configs.seq_len
         self.pred_len = configs.pred_len
         self.use_norm = configs.use_norm
-        self.patch_len = configs.period_len
-        self.patch_num = int(configs.seq_len // configs.period_len)
+        self.patch_len = configs.patch_len
+        self.patch_num = int(configs.seq_len // configs.patch_len)
+        self.kernel_size = configs.kernel_size
+        self.cycle_len = configs.cycle_len
         
-        
-        self.en_embedding = EnEmbedding(configs.n_vars, configs.d_model, self.patch_len, self.seq_len, configs.dropout)
+        self.en_embedding = EnEmbedding(configs.n_vars, configs.d_model, self.patch_len, self.kernel_size, configs.dropout)
 
         self.encoder = Encoder(
             [
@@ -183,15 +190,17 @@ class Model(nn.Module):
         self.head_nf = configs.d_model * (self.patch_num + 1)
         self.head = FlattenHead(configs.n_vars, self.head_nf, configs.pred_len,
                                 head_dropout=configs.dropout)
+        self.cycleQueue = RecurrentCycle(cycle_len=self.cycle_len, channel_size=configs.n_vars)
 
-    def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
+
+    def forecast(self, x_enc, cycle_index, x_mark_enc, x_dec, x_mark_dec):
         # Normalization from Non-stationary Transformer
         if self.use_norm:
             means = x_enc.mean(1, keepdim=True).detach()
             x_enc = x_enc - means
             stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
             x_enc /= stdev
-
+        x_enc = x_enc - self.cycleQueue(cycle_index, self.seq_len)
         _, _, N = x_enc.shape
         enc_out,b,n,d = self.en_embedding(x_enc.permute(0,2,1))
         enc_out = self.encoder(enc_out, b, n, d)
@@ -203,13 +212,15 @@ class Model(nn.Module):
         dec_out = self.head(enc_out)  # z: [bs x nvars x target_window]
         dec_out = dec_out.permute(0, 2, 1)
         
+        dec_out = dec_out + self.cycleQueue((cycle_index + self.seq_len) % self.cycle_len, self.pred_len)
+        
          # De-Normalization from Non-stationary Transformer
         if self.use_norm:
             dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
             dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
         return dec_out
     
-    def forward(self, x_enc, x_mark_enc=None, x_dec=None, x_mark_dec=None, mask=None):
-        dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
+    def forward(self, x_enc, cycle_index, x_mark_enc=None, x_dec=None, x_mark_dec=None, mask=None):
+        dec_out = self.forecast(x_enc, cycle_index, x_mark_enc, x_dec, x_mark_dec)
         return dec_out[:, -self.pred_len:, :]  # [B, L, D]
         

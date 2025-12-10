@@ -60,7 +60,7 @@ class EncoderLayer(nn.Module):
         super(EncoderLayer, self).__init__()
         d_ff = d_ff or 4 * d_model
         self.self_attention = self_attention
-        self.temp_gate = nn.Parameter(torch.zeros(1))
+        self.temp_gate = nn.Linear(d_model, 1)
         self.conv1 = nn.Conv1d(in_channels=d_model, out_channels=d_ff, kernel_size=1)
         self.conv2 = nn.Conv1d(in_channels=d_ff, out_channels=d_model, kernel_size=1)
         self.n_heads = n_heads
@@ -90,13 +90,16 @@ class EncoderLayer(nn.Module):
         )[0])
         x = self.norm1(x)
         x_glb_ori = x[:, -1, :].unsqueeze(1)
-        x_glb = torch.reshape(x_glb_ori, (B, -1, D))
-        batch_size, channels, d_model = x_glb.shape
+        x_glb_temp = torch.reshape(x_glb_ori, (B, -1, D))
+        gate = torch.sigmoid(self.temp_gate(x_glb_temp))
+        x_glb_gated = gate * x_glb_temp + (1 - gate) * var
+        batch_size, channels, d_model = x_glb_gated.shape
+        # Mutli-head core aggragation
         H = self.n_heads
-        multihead = F.gelu(self.gen1(x_glb))
-        multihead = self.gen2(multihead).view(batch_size,channels,H,-1)
+        #multihead = F.gelu(self.gen1(x_glb_gated))
+        multihead = F.gelu(self.gen2(x_glb_gated)).view(batch_size,channels,H,-1)
         multihead_core = multihead.reshape(batch_size*channels, H*self.d_head, 1)
-        multihead_core = F.gelu(self.gen3(multihead_core).view(batch_size,channels,H,-1))
+        multihead_core = F.gelu(self.gen3(multihead_core)).view(batch_size,channels,H,-1)
         combined_mean = multihead_core.reshape(batch_size,channels,H*self.d_core_head)
         combined_mean = self.gen4(combined_mean)
         
@@ -114,15 +117,12 @@ class EncoderLayer(nn.Module):
             combined_mean = torch.sum(combined_mean * weight, dim=1, keepdim=True).repeat(1, channels, 1)
 
         # mlp fusion
-        combined_glb_cat = torch.cat([x_glb, combined_mean], -1)
+        combined_glb_cat = torch.cat([x_glb_gated, combined_mean], -1)
         combined_glb_cat = F.gelu(self.gen5(combined_glb_cat))
         combined_glb_cat = self.gen6(combined_glb_cat)
         combined_glb_cat = torch.reshape(combined_glb_cat,
                                    (combined_glb_cat.shape[0] * combined_glb_cat.shape[1], combined_glb_cat.shape[2])).unsqueeze(1)
-        temp = torch.reshape(x_glb_ori, (B, N, D))
-        gate = torch.sigmoid(self.temp_gate)
-        mixed = gate * temp + (1 - gate) * var
-        x_glb = mixed.view(B * N, 1, D)
+        x_glb = x_glb_ori + combined_glb_cat
         x_glb = self.norm2(x_glb)
 
         y = x = torch.cat([x[:, :-1, :], x_glb], dim=1)
