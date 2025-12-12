@@ -23,22 +23,21 @@ set_seed(2021)
 
 from model.tcf7 import Model
 
-size = [96,48,12]
-d_model = 256
-d_ff = 256 
+size = [96,48,96]
+d_model = 128
+d_ff = 128 
 d_core = 128
-e_layers = 2
-bs = 32
+e_layers = 3
+bs = 16
 lr = 0.001
-n_vars = 170
+n_vars = 862
 period_len = 48
-cycle_len = 288
-freq = 't'
+cycle_len = 168
+freq = 'h'
 embed = 'timeF'
-root_path = 'C:/Users/Awsftausif/Desktop/S-Mamba_datasets/PEMS/'
-data_path = 'PEMS08.npz'
-
-train_set = Dataset_PEMS(
+root_path = 'C:/Users/Awsftausif/Desktop/S-Mamba_datasets/traffic/'
+data_path = 'traffic.csv'
+train_set = Dataset_Custom(
     root_path=root_path,
     data_path=data_path,
     flag='train',
@@ -51,7 +50,7 @@ train_set = Dataset_PEMS(
     cycle=cycle_len
 )
 
-val_set = Dataset_PEMS(
+val_set = Dataset_Custom(
     root_path=root_path,
     data_path=data_path,
     flag='val',
@@ -64,7 +63,7 @@ val_set = Dataset_PEMS(
     cycle=cycle_len
 )
 
-test_set = Dataset_PEMS(
+test_set = Dataset_Custom(
     root_path=root_path,
     data_path=data_path,
     flag='test',
@@ -120,7 +119,7 @@ class Config:
         self.e_layers = e_layers
         self.d_ff = d_ff
         self.n_vars = n_vars
-        self.patch_len = 48 
+        self.patch_len = 16 
         self.cycle_len = cycle_len
         self.seq_len = 96
         self.pred_len = size[2]
