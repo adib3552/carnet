@@ -41,6 +41,7 @@ def data_provider(args, flag):
         target=args.target,
         timeenc=timeenc,
         freq=freq,
+        cycle=args.cycle
     )
     print(args.freq)
     print(flag, len(data_set))

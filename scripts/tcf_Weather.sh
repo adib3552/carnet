@@ -1,6 +1,6 @@
 export CUDA_VISIBLE_DEVICES=0
 
-model_name=tcf
+model_name=tcf7
 
 python -u run.py \
   --task_name long_term_forecast \
@@ -22,8 +22,9 @@ python -u run.py \
   --des 'Exp' \
   --d_model 128 \
   --d_ff 128 \
-  --d_core 64 \
-  --batch_size 32 \
+  --cycle 144 \
+  --d_core 128 \
+  --batch_size 16 \
   --lradj cosine \
   --train_epochs 50 \
   --freq t \
@@ -48,8 +49,9 @@ python -u run.py \
   --n_vars 21 \
   --des 'Exp' \
   --d_model 128 \
-  --d_core 128 \
+  --d_core 64 \
   --d_ff 128 \
+  --cycle 144 \
   --batch_size 32 \
   --lradj cosine \
   --train_epochs 50 \
@@ -74,9 +76,10 @@ python -u run.py \
   --dec_in 21 \
   --n_vars 21 \
   --des 'Exp' \
-  --d_model 256 \
-  --d_ff 256 \
-  --d_core 128 \
+  --d_model 128 \
+  --d_ff 128 \
+  --d_core 64 \
+  --cycle 144 \
   --batch_size 32 \
   --train_epochs 50 \
   --freq t \
@@ -104,6 +107,7 @@ python -u run.py \
   --d_ff 128 \
   --d_core 64 \
   --batch_size 32 \
+  --cycle 144 \
   --lradj cosine \
   --train_epochs 50 \
   --freq t \
