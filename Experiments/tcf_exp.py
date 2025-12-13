@@ -23,9 +23,9 @@ set_seed(2021)
 
 from model.tcf7 import Model
 
-size = [96,48,96]
+size = [96,48,720]
 d_model = 128
-d_ff = 128 
+d_ff = 256 
 d_core = 128
 e_layers = 3
 bs = 16

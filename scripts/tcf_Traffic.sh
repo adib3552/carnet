@@ -19,10 +19,11 @@ python -u run.py \
   --enc_in 862 \
   --dec_in 862 \
   --n_vars 862 \
-  --d_model 256 \
+  --d_model 128 \
   --d_ff 256 \
   --d_core 128 \
   --des 'Exp' \
+  --cycle 168 \
   --batch_size 16 \
   --learning_rate 0.001 \
   --itr 1
@@ -44,10 +45,11 @@ python -u run.py \
   --enc_in 862 \
   --dec_in 862 \
   --n_vars 862 \
-  --d_model 256 \
+  --d_model 128 \
   --d_ff 256 \
   --d_core 128 \
   --des 'Exp' \
+  --cycle 168 \
   --batch_size 16 \
   --learning_rate 0.001 \
   --itr 1
@@ -69,11 +71,12 @@ python -u run.py \
   --enc_in 862 \
   --dec_in 862 \
   --n_vars 862 \
-  --d_model 256 \
+  --d_model 128 \
   --d_ff 256 \
   --d_core 128 \
   --des 'Exp' \
-  --batch_size 32 \
+  --batch_size 16 \
+  --cycle 168 \
   --learning_rate 0.001 \
   --itr 1
 
@@ -94,10 +97,11 @@ python -u run.py \
   --enc_in 862 \
   --dec_in 862 \
   --n_vars 862 \
-  --d_model 256 \
+  --d_model 128 \
   --d_ff 256 \
   --d_core 128 \
   --des 'Exp' \
   --batch_size 16 \
+  --cycle 168 \
   --learning_rate 0.001 \
   --itr 1
