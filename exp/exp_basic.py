@@ -1,15 +1,11 @@
 import os
 import torch
-from model import tcf
+import numpy as np
 
 
 class Exp_Basic(object):
     def __init__(self, args):
         self.args = args
-        self.model_dict = {
-            'tcf': tcf
-        }
-
         self.device = self._acquire_device()
         self.model = self._build_model().to(self.device)
 

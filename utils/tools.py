@@ -1,18 +1,13 @@
-import collections
-import os
-import sys
-import math
-
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-import pandas as pd
-from torch.utils.data._utils.collate import np_str_obj_array_pattern, default_collate_err_msg_format
+import time
+import math
 
 plt.switch_backend('agg')
 
 
-def adjust_learning_rate(optimizer, epoch, args):
+def adjust_learning_rate(optimizer, scheduler, epoch, args, printout=True):
     if args.lradj == 'type1':
         lr_adjust = {epoch: args.learning_rate * (0.5 ** ((epoch - 1) // 1))}
     elif args.lradj == 'type2':
@@ -20,15 +15,28 @@ def adjust_learning_rate(optimizer, epoch, args):
             2: 5e-5, 4: 1e-5, 6: 5e-6, 8: 1e-6,
             10: 5e-7, 15: 1e-7, 20: 5e-8
         }
-    elif args.lradj == "constant":
-        lr_adjust = {}
+    elif args.lradj == 'type3':
+        lr_adjust = {epoch: args.learning_rate if epoch < 3 else args.learning_rate * (0.8 ** ((epoch - 3) // 1))}
     elif args.lradj == "cosine":
-        lr_adjust = {epoch: args.learning_rate / 2 * (1 + math.cos(epoch / args.train_epochs * math.pi))}
+        lr_adjust = {epoch: args.learning_rate / 10 * (1 + math.cos(epoch / args.train_epochs * math.pi))}
+    elif args.lradj == 'constant':
+        lr_adjust = {epoch: args.learning_rate}
+    elif args.lradj == '3':
+        lr_adjust = {epoch: args.learning_rate if epoch < 10 else args.learning_rate*0.1}
+    elif args.lradj == '4':
+        lr_adjust = {epoch: args.learning_rate if epoch < 15 else args.learning_rate*0.1}
+    elif args.lradj == '5':
+        lr_adjust = {epoch: args.learning_rate if epoch < 25 else args.learning_rate*0.1}
+    elif args.lradj == '6':
+        lr_adjust = {epoch: args.learning_rate if epoch < 5 else args.learning_rate*0.1}  
+    elif args.lradj == 'TST':
+        lr_adjust = {epoch: scheduler.get_last_lr()[0]}
+    
     if epoch in lr_adjust.keys():
         lr = lr_adjust[epoch]
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
-        print('Updating learning rate to {}'.format(lr))
+        if printout: print('Updating learning rate to {}'.format(lr))
 
 
 class EarlyStopping:
@@ -93,94 +101,16 @@ def visual(true, preds=None, name='./pic/test.pdf'):
     plt.legend()
     plt.savefig(name, bbox_inches='tight')
 
-
-def adjustment(gt, pred):
-    anomaly_state = False
-    for i in range(len(gt)):
-        if gt[i] == 1 and pred[i] == 1 and not anomaly_state:
-            anomaly_state = True
-            for j in range(i, 0, -1):
-                if gt[j] == 0:
-                    break
-                else:
-                    if pred[j] == 0:
-                        pred[j] = 1
-            for j in range(i, len(gt)):
-                if gt[j] == 0:
-                    break
-                else:
-                    if pred[j] == 0:
-                        pred[j] = 1
-        elif gt[i] == 0:
-            anomaly_state = False
-        if anomaly_state:
-            pred[i] = 1
-    return gt, pred
-
-
-def cal_accuracy(y_pred, y_true):
-    return np.mean(y_pred == y_true)
-
-
-def custom_collate(batch):
-    r"""source: pytorch 1.9.0, only one modification to original code """
-
-    elem = batch[0]
-    elem_type = type(elem)
-    if isinstance(elem, torch.Tensor):
-        out = None
-        if torch.utils.data.get_worker_info() is not None:
-            # If we're in a background process, concatenate directly into a
-            # shared memory tensor to avoid an extra copy
-            numel = sum([x.numel() for x in batch])
-            storage = elem.storage()._new_shared(numel)
-            out = elem.new(storage)
-        return torch.stack(batch, 0, out=out)
-    elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
-            and elem_type.__name__ != 'string_':
-        if elem_type.__name__ == 'ndarray' or elem_type.__name__ == 'memmap':
-            # array of string classes and object
-            if np_str_obj_array_pattern.search(elem.dtype.str) is not None:
-                raise TypeError(default_collate_err_msg_format.format(elem.dtype))
-
-            return custom_collate([torch.as_tensor(b) for b in batch])
-        elif elem.shape == ():  # scalars
-            return torch.as_tensor(batch)
-    elif isinstance(elem, float):
-        return torch.tensor(batch, dtype=torch.float64)
-    elif isinstance(elem, int):
-        return torch.tensor(batch)
-    elif isinstance(elem, str):
-        return batch
-    elif isinstance(elem, collections.abc.Mapping):
-        return {key: custom_collate([d[key] for d in batch]) for key in elem}
-    elif isinstance(elem, tuple) and hasattr(elem, '_fields'):  # namedtuple
-        return elem_type(*(custom_collate(samples) for samples in zip(*batch)))
-    elif isinstance(elem, collections.abc.Sequence):
-        # check to make sure that the elements in batch have consistent size
-        it = iter(batch)
-        elem_size = len(next(it))
-        if not all(len(elem) == elem_size for elem in it):
-            raise RuntimeError('each element in list of batch should be of equal size')
-        transposed = zip(*batch)
-        return [custom_collate(samples) for samples in transposed]
-
-    raise TypeError(default_collate_err_msg_format.format(elem_type))
-
-class HiddenPrints:
-    def __init__(self, rank):
-        # 如果rank是none，那么就是单机单卡，不需要隐藏打印，将rank设置为0
-        if rank is None:
-            rank = 0
-        self.rank = rank
-    def __enter__(self):
-        if self.rank == 0:
-            return
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.rank == 0:
-            return
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
+def test_params_flop(model,x_shape):
+    """
+    If you want to thest former's flop, you need to give default value to inputs in model.forward(), the following code can only pass one argument to forward()
+    """
+    # model_params = 0
+    # for parameter in model.parameters():
+    #     model_params += parameter.numel()
+    #     print('INFO: Trainable parameter count: {:.2f}M'.format(model_params / 1000000.0))
+    from ptflops import get_model_complexity_info
+    with torch.cuda.device(0):
+        macs, params = get_model_complexity_info(model.cuda(), x_shape, as_strings=True, print_per_layer_stat=False)
+        print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
+        print('{:<30}  {:<8}'.format('Number of parameters: ', params))

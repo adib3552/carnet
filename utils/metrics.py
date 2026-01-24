@@ -1,5 +1,5 @@
 import numpy as np
-import torch.nn as nn
+
 
 def RSE(pred, true):
     return np.sqrt(np.sum((true - pred) ** 2)) / np.sqrt(np.sum((true - true.mean()) ** 2))
@@ -8,7 +8,8 @@ def RSE(pred, true):
 def CORR(pred, true):
     u = ((true - true.mean(0)) * (pred - pred.mean(0))).sum(0)
     d = np.sqrt(((true - true.mean(0)) ** 2 * (pred - pred.mean(0)) ** 2).sum(0))
-    return (u / d).mean(-1)
+    d += 1e-12
+    return 0.01*(u / d).mean(-1)
 
 
 def MAE(pred, true):
@@ -30,9 +31,6 @@ def MAPE(pred, true):
 def MSPE(pred, true):
     return np.mean(np.square((pred - true) / true))
 
-# 标准差
-def STD(pred, true):
-    return np.std(pred - true)
 
 def metric(pred, true):
     mae = MAE(pred, true)
@@ -40,5 +38,7 @@ def metric(pred, true):
     rmse = RMSE(pred, true)
     mape = MAPE(pred, true)
     mspe = MSPE(pred, true)
+    rse = RSE(pred, true)
+    corr = CORR(pred, true)
 
-    return mae, rmse, mape, mspe
+    return mae, mse, rmse, mape, mspe, rse, corr

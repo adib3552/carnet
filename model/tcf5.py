@@ -28,7 +28,6 @@ class EnEmbedding(nn.Module):
         # Patching
         self.patch_len = patch_len
         self.seq_len = seq_len
-        
         self.value_embedding = nn.Linear(patch_len, d_model, bias=False)
         self.seg_num_x = self.seq_len // self.patch_len
         self.conv1d = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=1 + 2 * (self.patch_len // 2),
@@ -96,10 +95,10 @@ class EncoderLayer(nn.Module):
         batch_size, channels, d_model = x_glb.shape
         H = self.n_heads
         #multihead = F.gelu(self.gen1(x_glb))
-        multihead = F.gelu(self.gen2(x_glb)).view(batch_size, channels, H, -1)
+        multihead = F.gelu(self.gen2(x_glb)).view(batch_size,channels,H,-1)
         multihead_core = multihead.reshape(batch_size*channels, H*self.d_head, 1)
-        multihead_core = F.gelu(self.gen3(multihead_core)).view(batch_size, channels, H, -1)
-        combined_mean = multihead_core.reshape(batch_size, channels, H*self.d_core_head)
+        multihead_core = F.gelu(self.gen3(multihead_core)).view(batch_size,channels,H,-1)
+        combined_mean = multihead_core.reshape(batch_size,channels,H*self.d_core_head)
         combined_mean = self.gen4(combined_mean)
         
         # stochastic pooling

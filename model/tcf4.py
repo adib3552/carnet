@@ -92,10 +92,9 @@ class EncoderLayer(nn.Module):
         x_glb = torch.reshape(x_glb_ori, (B, -1, D))
         batch_size, channels, d_model = x_glb.shape
         H = self.n_heads
-        multihead = F.gelu(self.gen1(x_glb))
-        multihead = self.gen2(multihead).view(batch_size,channels,H,-1)
+        multihead = F.gelu(self.gen2(x_glb)).view(batch_size,channels,H,-1)
         multihead_core = multihead.reshape(batch_size*channels, H*self.d_head, 1)
-        multihead_core = F.gelu(self.gen3(multihead_core).view(batch_size,channels,H,-1))
+        multihead_core = F.gelu(self.gen3(multihead_core)).view(batch_size,channels,H,-1)
         combined_mean = multihead_core.reshape(batch_size,channels,H*self.d_core_head)
         combined_mean = self.gen4(combined_mean)
         

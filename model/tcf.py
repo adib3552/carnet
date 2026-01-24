@@ -38,7 +38,18 @@ class ChannelWiseConv(nn.Module):
     def forward(self, x):
         # x shape: (batch_size, channels, sequence_length)
         return self.conv(x)
+    
+class RecurrentCycle(torch.nn.Module):
+    def __init__(self, cycle_len, channel_size):
+        super(RecurrentCycle, self).__init__()
+        self.cycle_len = cycle_len
+        self.channel_size = channel_size
+        self.data = torch.nn.Parameter(torch.zeros(cycle_len, channel_size), requires_grad=True)
 
+    def forward(self, index, length):
+        gather_index = (index.view(-1, 1) + torch.arange(length, device=index.device).view(1, -1)) % self.cycle_len
+        return self.data[gather_index]
+    
 class EnEmbedding(nn.Module):
     def __init__(self, n_vars, d_model, patch_len, kernel_size, dropout):
         super(EnEmbedding, self).__init__()
@@ -161,6 +172,7 @@ class Model(nn.Module):
         self.patch_len = configs.patch_len
         self.patch_num = int(configs.seq_len // configs.patch_len)
         self.kernel_size = configs.kernel_size
+        self.cycle_len = configs.cycle_len
         
         self.en_embedding = EnEmbedding(configs.n_vars, configs.d_model, self.patch_len, self.kernel_size, configs.dropout)
 
@@ -183,8 +195,9 @@ class Model(nn.Module):
         self.head_nf = configs.d_model * (self.patch_num + 1)
         self.head = FlattenHead(configs.n_vars, self.head_nf, configs.pred_len,
                                 head_dropout=configs.dropout)
+        self.cycleQueue = RecurrentCycle(cycle_len=self.cycle_len, channel_size=configs.n_vars)
 
-    def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
+    def forecast(self, x_enc, cycle_index, x_mark_enc, x_dec, x_mark_dec):
         # Normalization from Non-stationary Transformer
         if self.use_norm:
             means = x_enc.mean(1, keepdim=True).detach()
@@ -193,6 +206,7 @@ class Model(nn.Module):
             x_enc /= stdev
 
         _, _, N = x_enc.shape
+        x_enc = x_enc - self.cycleQueue(cycle_index, self.seq_len)
         enc_out,b,n,d = self.en_embedding(x_enc.permute(0,2,1))
         enc_out = self.encoder(enc_out, b, n, d)
         enc_out = torch.reshape(
@@ -202,6 +216,7 @@ class Model(nn.Module):
         
         dec_out = self.head(enc_out)  # z: [bs x nvars x target_window]
         dec_out = dec_out.permute(0, 2, 1)
+        dec_out = dec_out + self.cycleQueue((cycle_index + self.seq_len) % self.cycle_len, self.pred_len)
         
          # De-Normalization from Non-stationary Transformer
         if self.use_norm:
@@ -209,8 +224,8 @@ class Model(nn.Module):
             dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
         return dec_out
     
-    def forward(self, x_enc, x_mark_enc=None, x_dec=None, x_mark_dec=None, mask=None):
-        dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
+    def forward(self, x_enc, cycle_index, x_mark_enc=None, x_dec=None, x_mark_dec=None, mask=None):
+        dec_out = self.forecast(x_enc, cycle_index, x_mark_enc, x_dec, x_mark_dec)
         return dec_out[:, -self.pred_len:, :]  # [B, L, D]
         
     

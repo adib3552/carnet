@@ -19,24 +19,26 @@ def set_seed(seed):
     torch.use_deterministic_algorithms(True)
 
 
-set_seed(2021)
+set_seed(2024)
 
-from model.tcf7 import Model
+from model.cSofts import Model
 
 size = [96,48,720]
 d_model = 128
-d_ff = 256 
-d_core = 128
-e_layers = 3
+d_ff = 128
+d_core = 64
+e_layers = 1
 bs = 16
 lr = 0.001
-n_vars = 862
-period_len = 48
+n_vars = 321
+patch_len = 16
+period_len = 24
 cycle_len = 168
 freq = 'h'
+use_norm = 1
 embed = 'timeF'
-root_path = 'C:/Users/Awsftausif/Desktop/S-Mamba_datasets/traffic/'
-data_path = 'traffic.csv'
+root_path = 'C:/Users/Awsftausif/Desktop/S-Mamba_datasets/electricity/'
+data_path = 'electricity.csv'
 train_set = Dataset_Custom(
     root_path=root_path,
     data_path=data_path,
@@ -77,9 +79,9 @@ test_set = Dataset_Custom(
 )
 
 
-train_loader = DataLoader(train_set, batch_size=bs, shuffle=True)
-val_loader = DataLoader(val_set, batch_size=bs, shuffle=False)
-test_loader = DataLoader(test_set, batch_size=bs, shuffle=False)
+train_loader = DataLoader(train_set, batch_size=bs, shuffle=True, drop_last=True)
+val_loader = DataLoader(val_set, batch_size=bs, shuffle=False, drop_last=True)
+test_loader = DataLoader(test_set, batch_size=bs, shuffle=False, drop_last=False)
 
 
 def find_period(x, k=1):
@@ -105,6 +107,10 @@ for batch_idx, (seq_x, seq_y, seq_x_mark, seq_y_mark, cycle_index) in enumerate(
     
     print("\nseq_y_mark shape:", seq_y_mark.shape)
     
+    period = find_period(seq_x, k=1)
+
+    print("Detected period:", period)
+    
     print("\nCycle index: ", cycle_index)
     
     # Exit after first batch
@@ -119,18 +125,22 @@ class Config:
         self.e_layers = e_layers
         self.d_ff = d_ff
         self.n_vars = n_vars
-        self.patch_len = 16 
+        self.enc_in = n_vars
+        self.patch_len = patch_len 
         self.cycle_len = cycle_len
-        self.seq_len = 96
+        self.seq_len = size[0]
         self.pred_len = size[2]
         self.kernel_size = 0
-        self.period_len = period_len
         self.n_heads = 8
         self.factor = 3
-        self.dropout = 0.1
-        self.use_norm = True
+        self.dropout = 0
+        self.use_norm = use_norm
+        self.period_len = period_len
         self.freq = freq
         self.embed = embed
+        self.task_name = 'long_term_forecast'
+        self.features = 'M'
+        self.activation = 'gelu'
 # Create configuration instance
 configs = Config()
 model = Model(configs).to('cuda')
@@ -144,23 +154,27 @@ def mae_loss(pred, true):
     return torch.mean(torch.abs(pred - true))
 
 # ---- Train & Evaluate ----
-def train(model, train_loader, optimizer, device, pred_len):
+def train(model, train_loader, optimizer, scheduler, device, pred_len):
     model.train()
     total_loss = 0
-    for seq_x, seq_y, seq_x_mark, seq_y_mark, cycle_index in tqdm(train_loader, desc="Training", leave=False):
+
+    for seq_x, seq_y, seq_x_mark, seq_y_mark, cycle_index in tqdm(
+            train_loader, desc="Training", leave=False):
+
         seq_x = seq_x.to(device).float()
-        target = seq_y[:, -pred_len:, :].to(device).float()  # take last pred_len steps
+        target = seq_y[:, -pred_len:, :].to(device).float()
 
         optimizer.zero_grad()
         outputs = model(seq_x, cycle_index)
         loss = mse_loss(outputs, target)
+
         loss.backward()
         optimizer.step()
+        scheduler.step()   
 
         total_loss += loss.item()
 
     return total_loss / len(train_loader)
-
 
 def evaluate(model, val_loader, device, pred_len):
     model.eval()
@@ -192,24 +206,51 @@ def test(model, test_loader, device, pred_len):
 
 
 # ---- Main Training Loop ----
-def train_model(model, train_loader, val_loader, test_loader, pred_len, epochs=100, lr=lr, patience=5, device='cuda'):
+def train_model(
+        model,
+        train_loader,
+        val_loader,
+        test_loader,
+        pred_len,
+        epochs=100,
+        lr=lr,
+        patience=5,
+        device='cuda'
+):
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
-    
+
+    steps_per_epoch = len(train_loader)
+
+    scheduler = optim.lr_scheduler.OneCycleLR(
+        optimizer=optimizer,
+        max_lr=lr,                  # same idea as first code
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        pct_start=0.3,              # warmup fraction (typical)
+    )
+
     best_val_loss = float('inf')
     best_model = None
     patience_counter = 0
 
     for epoch in range(epochs):
         print(f"\nEpoch {epoch+1}/{epochs}")
-        
-        train_loss = train(model, train_loader, optimizer, device, pred_len)
-        val_mse, val_mae = evaluate(model, val_loader, device, pred_len)
-        scheduler.step()
 
-        print(f"Train Loss: {train_loss:.6f} | Val MSE: {val_mse:.6f} | Val MAE: {val_mae:.6f}")
+        train_loss = train(
+            model, train_loader, optimizer, scheduler, device, pred_len
+        )
 
-        # Early stopping
+        val_mse, val_mae = evaluate(
+            model, val_loader, device, pred_len
+        )
+
+        print(
+            f"Train Loss: {train_loss:.6f} | "
+            f"Val MSE: {val_mse:.6f} | "
+            f"Val MAE: {val_mae:.6f}"
+        )
+
+        # ---- Early stopping ----
         if val_mse < best_val_loss:
             best_val_loss = val_mse
             best_model = model.state_dict()
@@ -224,9 +265,13 @@ def train_model(model, train_loader, val_loader, test_loader, pred_len, epochs=1
     model.load_state_dict(best_model)
 
     # Final test
-    test_mse, test_mae, preds, trues = test(model, test_loader, device, pred_len)
+    test_mse, test_mae, preds, trues = test(
+        model, test_loader, device, pred_len
+    )
+
     print(f"\nTest MSE: {test_mse:.6f} | Test MAE: {test_mae:.6f}")
     return model, preds, trues
+
 
 
 # ---- Run training ----
