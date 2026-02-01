@@ -1,5 +1,5 @@
 
-model_name=cSofts
+model_name=carnet
 root_path_name=C:/Users/Awsftausif/Desktop/S-Mamba_datasets/ETT-small/
 data_path_name=ETTh1.csv
 model_id_name=ETTh1
@@ -30,7 +30,7 @@ python -u run.py \
   --cycle 24 \
   --des 'Exp' \
   --freq h \
-  --itr 0
+  --itr 1
 
 python -u run.py \
   --is_training 1 \
@@ -56,7 +56,7 @@ python -u run.py \
   --cycle 24 \
   --des 'Exp' \
   --freq h \
-  --itr 0
+  --itr 1
 
 python -u run.py \
   --is_training 1 \
@@ -82,7 +82,7 @@ python -u run.py \
   --cycle 24 \
   --des 'Exp' \
   --freq h \
-  --itr 0
+  --itr 1
 
 python -u run.py \
   --is_training 1 \

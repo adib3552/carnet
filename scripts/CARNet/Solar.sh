@@ -1,88 +1,10 @@
 
-model_name=cSofts
-root_path_name=C:/Users/Awsftausif/Desktop/S-Mamba_datasets/PEMS/
-data_path_name=PEMS08.npz
-model_id_name=PEMS08
-data_name=PEMS
+model_name=carnet
+root_path_name=C:/Users/Awsftausif/Desktop/S-Mamba_datasets/Solar/
+data_path_name=solar_AL.txt
+model_id_name=Solar
+data_name=Solar
 random_seed=2024
-
-python -u run.py \
-  --is_training 1 \
-  --root_path $root_path_name \
-  --data_path $data_path_name \
-  --model_id $model_id_name'_96_12' \
-  --model $model_name \
-  --data $data_name \
-  --features M \
-  --features M \
-  --seq_len 96 \
-  --label_len 48 \
-  --pred_len 12 \
-  --e_layers 2 \
-  --enc_in 170 \
-  --n_vars 170 \
-  --d_model 512 \
-  --batch_size 16 \
-  --d_ff 512 \
-  --d_core 512 \
-  --learning_rate 0.001 \
-  --cycle 288 \
-  --des 'Exp' \
-  --freq t \
-  --use_norm 1 \
-  --itr 0
-
-python -u run.py \
-  --is_training 1 \
-  --root_path $root_path_name \
-  --data_path $data_path_name \
-  --model_id $model_id_name'_96_24' \
-  --model $model_name \
-  --data $data_name \
-  --features M \
-  --features M \
-  --seq_len 96 \
-  --label_len 48 \
-  --pred_len 24 \
-  --e_layers 2 \
-  --enc_in 170 \
-  --n_vars 170 \
-  --d_model 512 \
-  --batch_size 16 \
-  --d_ff 512 \
-  --d_core 512 \
-  --learning_rate 0.001 \
-  --cycle 288 \
-  --des 'Exp' \
-  --freq t \
-  --use_norm 1 \
-  --itr 0
-
-python -u run.py \
-  --is_training 1 \
-  --root_path $root_path_name \
-  --data_path $data_path_name \
-  --model_id $model_id_name'_96_48' \
-  --model $model_name \
-  --data $data_name \
-  --features M \
-  --features M \
-  --seq_len 96 \
-  --label_len 48 \
-  --pred_len 48 \
-  --e_layers 2 \
-  --enc_in 170 \
-  --n_vars 170 \
-  --d_model 512 \
-  --batch_size 16 \
-  --d_ff 512 \
-  --d_core 512 \
-  --learning_rate 0.001 \
-  --cycle 288 \
-  --des 'Exp' \
-  --freq t \
-  --use_norm 1 \
-  --itr 0
 
 python -u run.py \
   --is_training 1 \
@@ -95,17 +17,95 @@ python -u run.py \
   --features M \
   --seq_len 96 \
   --label_len 48 \
-  --pred_len 96\
+  --pred_len 96 \
   --e_layers 3 \
-  --enc_in 170 \
-  --n_vars 170 \
+  --enc_in 137 \
+  --n_vars 137 \
   --d_model 512 \
   --batch_size 16 \
   --d_ff 512 \
-  --d_core 512 \
-  --learning_rate 0.001 \
-  --cycle 288 \
+  --d_core 128 \
+  --learning_rate 0.0001 \
+  --cycle 144 \
   --des 'Exp' \
+  --use_norm 0 \
   --freq t \
-  --use_norm 1 \
+  --itr 1
+
+python -u run.py \
+  --is_training 1 \
+  --root_path $root_path_name \
+  --data_path $data_path_name \
+  --model_id $model_id_name'_96_192' \
+  --model $model_name \
+  --data $data_name \
+  --features M \
+  --features M \
+  --seq_len 96 \
+  --label_len 48 \
+  --pred_len 192 \
+  --e_layers 2 \
+  --enc_in 137 \
+  --n_vars 137 \
+  --d_model 512 \
+  --batch_size 16 \
+  --d_ff 512 \
+  --d_core 128 \
+  --learning_rate 0.0001 \
+  --cycle 144 \
+  --des 'Exp' \
+  --use_norm 0 \
+  --freq t \
+  --itr 1
+
+python -u run.py \
+  --is_training 1 \
+  --root_path $root_path_name \
+  --data_path $data_path_name \
+  --model_id $model_id_name'_96_336' \
+  --model $model_name \
+  --data $data_name \
+  --features M \
+  --features M \
+  --seq_len 96 \
+  --label_len 48 \
+  --pred_len 336 \
+  --e_layers 2 \
+  --enc_in 137 \
+  --n_vars 137 \
+  --d_model 512 \
+  --batch_size 16 \
+  --d_ff 512 \
+  --d_core 128 \
+  --learning_rate 0.0001 \
+  --cycle 144 \
+  --des 'Exp' \
+  --use_norm 0 \
+  --freq t \
+  --itr 1
+
+python -u run.py \
+  --is_training 1 \
+  --root_path $root_path_name \
+  --data_path $data_path_name \
+  --model_id $model_id_name'_96_720' \
+  --model $model_name \
+  --data $data_name \
+  --features M \
+  --features M \
+  --seq_len 96 \
+  --label_len 48 \
+  --pred_len 720\
+  --e_layers 3 \
+  --enc_in 137 \
+  --n_vars 137 \
+  --d_model 512 \
+  --batch_size 16 \
+  --d_ff 512 \
+  --d_core 128 \
+  --learning_rate 0.0001 \
+  --cycle 144 \
+  --des 'Exp' \
+  --use_norm 0 \
+  --freq t \
   --itr 1

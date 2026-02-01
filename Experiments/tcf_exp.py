@@ -21,7 +21,7 @@ def set_seed(seed):
 
 set_seed(2024)
 
-from model.cSofts import Model
+from TCF.model.CARNet import Model
 
 size = [96,48,720]
 d_model = 128

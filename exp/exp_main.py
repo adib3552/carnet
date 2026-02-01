@@ -1,6 +1,6 @@
 from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
-from model import cSofts, tcf8, cSofts2, wo_mhca, wo_ccc, wo_cccr
+from model import wo_mhca, wo_ccc, wo_cccr, CARNet
 from utils.tools import EarlyStopping, adjust_learning_rate, visual, test_params_flop
 from utils.metrics import metric
 
@@ -26,9 +26,7 @@ class Exp_Main(Exp_Basic):
 
     def _build_model(self):
         model_dict = {
-            'cSofts': cSofts,
-            'tcf8' : tcf8,
-            'cSofts2': cSofts2,
+            'carnet': CARNet,
             'mhca': wo_mhca,
             'ccc': wo_ccc,
             'cccr':wo_cccr
@@ -86,7 +84,7 @@ class Exp_Main(Exp_Basic):
                         outputs = self.model(batch_x, batch_cycle)
                     elif any(substr in self.args.model for substr in {'Linear', 'MLP', 'SegRNN', 'TST'}):
                         outputs = self.model(batch_x)
-                    elif any(substr in self.args.model for substr in {'cSofts', 'tcf', 'mhca', 'ccc', 'cccr'}):
+                    elif any(substr in self.args.model for substr in {'carnet', 'mhca', 'ccc', 'cccr'}):
                         outputs = self.model(batch_x, batch_cycle, None, dec_inp, batch_y_mark)
                     else:
                         if self.args.output_attention:
@@ -179,7 +177,7 @@ class Exp_Main(Exp_Basic):
                         outputs = self.model(batch_x, batch_cycle)
                     elif any(substr in self.args.model for substr in {'Linear', 'MLP', 'SegRNN', 'TST'}):
                         outputs = self.model(batch_x)
-                    elif any(substr in self.args.model for substr in {'cSofts', 'tcf', 'mhca', 'ccc', 'cccr'}):
+                    elif any(substr in self.args.model for substr in {'carnet', 'mhca', 'ccc', 'cccr'}):
                         outputs = self.model(batch_x, batch_cycle, None, dec_inp, batch_y_mark)
                     else:
                         if self.args.output_attention:
@@ -286,7 +284,7 @@ class Exp_Main(Exp_Basic):
                         outputs = self.model(batch_x, batch_cycle)
                     elif any(substr in self.args.model for substr in {'Linear', 'MLP', 'SegRNN', 'TST'}):
                         outputs = self.model(batch_x)
-                    elif any(substr in self.args.model for substr in {'cSofts', 'tcf', 'mhca', 'ccc', 'cccr'}):
+                    elif any(substr in self.args.model for substr in {'carnet', 'mhca', 'ccc', 'cccr'}):
                         outputs = self.model(batch_x, batch_cycle, None, dec_inp, batch_y_mark)
                     else:
                         if self.args.output_attention:
@@ -398,6 +396,8 @@ class Exp_Main(Exp_Basic):
                         outputs = self.model(batch_x, batch_cycle)
                     elif any(substr in self.args.model for substr in {'Linear', 'MLP', 'SegRNN', 'TST'}):
                         outputs = self.model(batch_x)
+                    elif any(substr in self.args.model for substr in {'carnet', 'mhca', 'ccc', 'cccr'}):
+                        outputs = self.model(batch_x, batch_cycle, None, dec_inp, batch_y_mark)
                     else:
                         if self.args.output_attention:
                             outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]

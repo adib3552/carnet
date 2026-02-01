@@ -1,9 +1,9 @@
 
-model_name=cSofts
-root_path_name=C:/Users/Awsftausif/Desktop/S-Mamba_datasets/ETT-small/
-data_path_name=ETTh2.csv
-model_id_name=ETTh2
-data_name=ETTh2
+model_name=carnet
+root_path_name=C:/Users/Awsftausif/Desktop/S-Mamba_datasets/ETT-small//
+data_path_name=ETTm2.csv
+model_id_name=ETTm2
+data_name=ETTm2
 random_seed=2024
 
 python -u run.py \
@@ -14,7 +14,7 @@ python -u run.py \
   --model $model_name \
   --data $data_name \
   --features M \
-  --data ETTh1 \
+  --data ETTm1 \
   --features M \
   --seq_len 96 \
   --label_len 48 \
@@ -25,11 +25,12 @@ python -u run.py \
   --d_model 128 \
   --batch_size 32 \
   --d_ff 128 \
-  --d_core 64 \
+  --d_core 128 \
   --learning_rate 0.0001 \
-  --cycle 24 \
+  --cycle 96 \
   --des 'Exp' \
-  --freq h \
+  --freq t \
+  --train_epochs 7 \
   --itr 1
 
 python -u run.py \
@@ -40,7 +41,7 @@ python -u run.py \
   --model $model_name \
   --data $data_name \
   --features M \
-  --data ETTh1 \
+  --data ETTm1 \
   --features M \
   --seq_len 96 \
   --label_len 48 \
@@ -51,11 +52,12 @@ python -u run.py \
   --d_model 128 \
   --batch_size 32 \
   --d_ff 128 \
-  --d_core 64 \
+  --d_core 128 \
   --learning_rate 0.0001 \
-  --cycle 24 \
+  --cycle 96 \
   --des 'Exp' \
-  --freq h \
+  --freq t \
+  --train_epochs 7 \
   --itr 1
 
 python -u run.py \
@@ -66,7 +68,7 @@ python -u run.py \
   --model $model_name \
   --data $data_name \
   --features M \
-  --data ETTh1 \
+  --data ETTm1 \
   --features M \
   --seq_len 96 \
   --label_len 48 \
@@ -74,14 +76,15 @@ python -u run.py \
   --e_layers 2 \
   --enc_in 7 \
   --n_vars 7 \
-  --d_model 128 \
+  --d_model 512 \
   --batch_size 32 \
-  --d_ff 128 \
-  --d_core 64 \
+  --d_ff 512 \
+  --d_core 128 \
   --learning_rate 0.0001 \
-  --cycle 24 \
+  --cycle 96 \
   --des 'Exp' \
-  --freq h \
+  --freq t \
+  --train_epochs 7 \
   --itr 1
 
 python -u run.py \
@@ -92,7 +95,7 @@ python -u run.py \
   --model $model_name \
   --data $data_name \
   --features M \
-  --data ETTh1 \
+  --data ETTm1 \
   --features M \
   --seq_len 96 \
   --label_len 48 \
@@ -103,9 +106,10 @@ python -u run.py \
   --d_model 128 \
   --batch_size 32 \
   --d_ff 128 \
-  --d_core 64 \
+  --d_core 128 \
   --learning_rate 0.0001 \
-  --cycle 24 \
+  --cycle 96 \
   --des 'Exp' \
-  --freq h \
+  --freq t \
+  --train_epochs 7 \
   --itr 1

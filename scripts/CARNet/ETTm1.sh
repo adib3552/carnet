@@ -1,9 +1,9 @@
 
-model_name=cSofts
-root_path_name=C:/Users/Awsftausif/Desktop/S-Mamba_datasets/Solar/
-data_path_name=solar_AL.txt
-model_id_name=Solar
-data_name=Solar
+model_name=carnet
+root_path_name=C:/Users/Awsftausif/Desktop/S-Mamba_datasets/ETT-small//
+data_path_name=ETTm1.csv
+model_id_name=ETTm1
+data_name=ETTm1
 random_seed=2024
 
 python -u run.py \
@@ -14,23 +14,24 @@ python -u run.py \
   --model $model_name \
   --data $data_name \
   --features M \
+  --data ETTm1 \
   --features M \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 96 \
-  --e_layers 3 \
-  --enc_in 137 \
-  --n_vars 137 \
-  --d_model 512 \
+  --e_layers 2 \
+  --enc_in 7 \
+  --n_vars 7 \
+  --d_model 128 \
   --batch_size 16 \
-  --d_ff 512 \
+  --d_ff 128 \
   --d_core 128 \
   --learning_rate 0.0001 \
-  --cycle 144 \
+  --cycle 96 \
   --des 'Exp' \
-  --use_norm 0 \
   --freq t \
-  --itr 0
+  --train_epochs 7 \
+  --itr 1
 
 python -u run.py \
   --is_training 1 \
@@ -40,23 +41,24 @@ python -u run.py \
   --model $model_name \
   --data $data_name \
   --features M \
+  --data ETTm1 \
   --features M \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 192 \
   --e_layers 2 \
-  --enc_in 137 \
-  --n_vars 137 \
-  --d_model 512 \
+  --enc_in 7 \
+  --n_vars 7 \
+  --d_model 128 \
   --batch_size 16 \
   --d_ff 512 \
   --d_core 128 \
   --learning_rate 0.0001 \
-  --cycle 144 \
+  --cycle 96 \
   --des 'Exp' \
-  --use_norm 0 \
   --freq t \
-  --itr 0
+  --train_epochs 7 \
+  --itr 1
 
 python -u run.py \
   --is_training 1 \
@@ -66,23 +68,24 @@ python -u run.py \
   --model $model_name \
   --data $data_name \
   --features M \
+  --data ETTm1 \
   --features M \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 336 \
   --e_layers 2 \
-  --enc_in 137 \
-  --n_vars 137 \
-  --d_model 512 \
+  --enc_in 7 \
+  --n_vars 7 \
+  --d_model 128 \
   --batch_size 16 \
-  --d_ff 512 \
-  --d_core 128 \
+  --d_ff 256 \
+  --d_core 64 \
   --learning_rate 0.0001 \
-  --cycle 144 \
+  --cycle 96 \
   --des 'Exp' \
-  --use_norm 0 \
   --freq t \
-  --itr 0
+  --train_epochs 7 \
+  --itr 1
 
 python -u run.py \
   --is_training 1 \
@@ -92,20 +95,21 @@ python -u run.py \
   --model $model_name \
   --data $data_name \
   --features M \
+  --data ETTm1 \
   --features M \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 720\
-  --e_layers 3 \
-  --enc_in 137 \
-  --n_vars 137 \
-  --d_model 512 \
+  --e_layers 2 \
+  --enc_in 7 \
+  --n_vars 7 \
+  --d_model 128 \
   --batch_size 16 \
-  --d_ff 512 \
-  --d_core 128 \
+  --d_ff 128 \
+  --d_core 64 \
   --learning_rate 0.0001 \
-  --cycle 144 \
+  --cycle 96 \
   --des 'Exp' \
-  --use_norm 0 \
   --freq t \
+  --train_epochs 7 \
   --itr 1

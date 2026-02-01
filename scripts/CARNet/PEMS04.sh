@@ -1,5 +1,5 @@
 
-model_name=cSofts
+model_name=carnet
 root_path_name=C:/Users/Awsftausif/Desktop/S-Mamba_datasets/PEMS/
 data_path_name=PEMS04.npz
 model_id_name=PEMS04
@@ -30,7 +30,7 @@ python -u run.py \
   --des 'Exp' \
   --freq t \
   --use_norm 0 \
-  --itr 0
+  --itr 1
 
 python -u run.py \
   --is_training 1 \
@@ -56,7 +56,7 @@ python -u run.py \
   --des 'Exp' \
   --freq t \
   --use_norm 0 \
-  --itr 0
+  --itr 1
 
 python -u run.py \
   --is_training 1 \
@@ -82,7 +82,7 @@ python -u run.py \
   --des 'Exp' \
   --freq t \
   --use_norm 0 \
-  --itr 0
+  --itr 1
 
 python -u run.py \
   --is_training 1 \
