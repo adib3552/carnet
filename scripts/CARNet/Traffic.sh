@@ -18,12 +18,12 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 96 \
-  --e_layers 2 \
+  --e_layers 3 \
   --enc_in 862 \
   --n_vars 862 \
-  --d_model 128 \
+  --d_model 512 \
   --batch_size 16 \
-  --d_ff 128 \
+  --d_ff 512 \
   --d_core 128 \
   --learning_rate 0.001 \
   --cycle 168 \
@@ -44,12 +44,12 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 192 \
-  --e_layers 2 \
+  --e_layers 3 \
   --enc_in 862 \
   --n_vars 862 \
-  --d_model 128 \
+  --d_model 512 \
   --batch_size 16 \
-  --d_ff 128 \
+  --d_ff 512 \
   --d_core 128 \
   --learning_rate 0.001 \
   --cycle 168 \
@@ -70,12 +70,12 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 336 \
-  --e_layers 2 \
+  --e_layers 3 \
   --enc_in 862 \
   --n_vars 862 \
-  --d_model 128 \
+  --d_model 512 \
   --batch_size 16 \
-  --d_ff 128 \
+  --d_ff 512 \
   --d_core 128 \
   --learning_rate 0.001 \
   --cycle 168 \
@@ -96,12 +96,12 @@ python -u run.py \
   --seq_len 96 \
   --label_len 48 \
   --pred_len 720\
-  --e_layers 2 \
+  --e_layers 3 \
   --enc_in 862 \
   --n_vars 862 \
-  --d_model 128 \
+  --d_model 512 \
   --batch_size 16 \
-  --d_ff 128 \
+  --d_ff 512 \
   --d_core 128 \
   --learning_rate 0.001 \
   --cycle 168 \
